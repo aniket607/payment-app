@@ -4,6 +4,7 @@ const {User}=require('../db')
 const jwt=require('jsonwebtoken')
 const {JWT_SECRET}=require('../config')
 const userRouter=express.Router()
+const {authMiddleware}=require('../middleware')
 
 const signupBody = zod.object({
     username: zod.string().email(),
@@ -27,7 +28,7 @@ userRouter.post('/signup',async(req,res)=>{
     const ExistingUser=await User.findOne({
         username:req.body.username
     })
-    
+
     if(ExistingUser)
     {
         return res.status(411).json({
@@ -36,7 +37,7 @@ userRouter.post('/signup',async(req,res)=>{
     }
     const user=await User.create({
         username:req.body.username,
-        passsword:req.body.password,
+        password:req.body.password,
         firstName:req.body.firstName,
         lastName:req.body.lastName
     })
@@ -51,15 +52,15 @@ userRouter.post('/signin',async(req,res)=>{
     const {success}=signinBody.safeParse(req.body)
     if(!success){
         return res.status(411).json({
-            message: "Error while logging in"
+            message: "Incorrect Inputs"
         })
     }
     const user=await User.findOne({
         username:req.body.username,
-        password:req.body.passsword
+        password:req.body.password
     })
     if(user)
-    {
+    {   
         const token=jwt.sign({userId:user._id},JWT_SECRET)
         return res.json({
             token:token
@@ -68,5 +69,42 @@ userRouter.post('/signin',async(req,res)=>{
     res.status(411).json({
         message: "Error while logging in"
     })
+})
+
+const updateBody = zod.object({
+	password: zod.string().optional(),
+    firstName: zod.string().optional(),
+    lastName: zod.string().optional(),
+})
+
+userRouter.put("/", authMiddleware, async (req, res) => {
+    const { success } = updateBody.safeParse(req.body)
+    if (!success) {
+        return res.status(411).json({
+            message: "Error while updating information"
+        })
+    }
+
+	await User.updateOne({ _id: req.userId }, req.body);
+	
+    return res.json({
+        message: "Updated successfully"
+    })
+})
+
+userRouter.get("/bulk",async(req,res)=>{
+    const filter=req.query.filter||"";
+    User.find().or([{ firstName: filter }, { lastName: filter }])
+    .then(users => {
+        console.log(users)
+        res.json({
+        user: users.map(user => ({
+            username: user.username,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            _id: user._id
+        }))
+        })
+    }).catch(error => {console.log(error);})
 })
 module.exports=userRouter;
