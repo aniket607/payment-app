@@ -1,6 +1,6 @@
 const express=require('express')
 const zod=require('zod')
-const {User}=require('../db')
+const {User, Account}=require('../db')
 const jwt=require('jsonwebtoken')
 const {JWT_SECRET}=require('../config')
 const userRouter=express.Router()
@@ -43,9 +43,15 @@ userRouter.post('/signup',async(req,res)=>{
     })
     const userId=user._id;
     const token=jwt.sign({userId},JWT_SECRET);
+    const initBalance=Math.floor(Math.random()*10000)
+    const account=await Account.create({
+        userId:user._id,
+        balance:initBalance
+    })
     res.status(200).json({
         msg:"User Created Succesfully",
-        token:token
+        token:token,
+        balance:initBalance
     })
 })
 userRouter.post('/signin',async(req,res)=>{
@@ -94,7 +100,7 @@ userRouter.put("/", authMiddleware, async (req, res) => {
 
 userRouter.get("/bulk",async(req,res)=>{
     const filter=req.query.filter||"";
-    User.find().or([{ firstName: filter }, { lastName: filter }])
+    User.find().or([{ firstName: {"$regex":filter} }, { lastName:{"$regex":filter}}])
     .then(users => {
         console.log(users)
         res.json({
