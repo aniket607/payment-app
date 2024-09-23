@@ -1,7 +1,36 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import UserList from './UserList'
+import axios from 'axios'
 
 function Dashboard() {
+  const [balance, setBalance] = useState(0)
+  const [users,setUsers]=useState([])
+
+  useEffect(() => {
+     async function fetchbalance (){
+      const response=await axios.get("http://localhost:3000/api/v1/account/balance",{
+        'headers':{
+          'Authorization':localStorage.getItem('token')
+        }
+      })
+      setBalance(response.data.balance);
+    }
+    fetchbalance();
+  }, [])
+
+  useEffect(() => {
+    async function fetchUsers (){
+     const response=await axios.get("http://localhost:3000/api/v1/user/bulk",{
+       'headers':{
+         'Authorization':localStorage.getItem('token')
+       }
+     })
+     console.log('API response:', response.data);
+     setUsers(response.data.user)
+   }
+   fetchUsers();
+ }, [])
+  
   return (
     <div className='min-h-screen'>
       <nav>
@@ -16,16 +45,17 @@ function Dashboard() {
       </nav>
       <div className="flex flex-grow text-2xl font-bold ml-6 mt-6">
         <div className=''>Your Balance</div>
-        <div className="ml-2 font-semibold">$5000</div>
+        <div className="ml-2 font-semibold">${balance}</div>
       </div>
       <div className='ml-6 mt-6 text-2xl font-bold'>Users</div>
       <div className='mx-6 mt-4'>
           <input className='border border-x-slate-200 rounded-md w-full h-10 placeholder:p-2 ' type="text" placeholder='Search Users...'/>
       </div>
-      <UserList imgLink={"https://cdn.pixabay.com/photo/2013/07/13/09/58/united-states-156388_1280.png"}/>
-      <UserList imgLink={"https://cdn.pixabay.com/photo/2013/07/13/09/58/united-states-156388_1280.png"}/>
-      <UserList imgLink={"https://cdn.pixabay.com/photo/2013/07/13/09/58/united-states-156388_1280.png"}/>
-
+      <div>
+         {users.map((user)=>{
+        return <UserList user={user}/>
+        })}
+      </div>
     </div>
   )
 }

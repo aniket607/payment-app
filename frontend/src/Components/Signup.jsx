@@ -1,7 +1,14 @@
-import React from 'react'
-import {Link} from 'react-router-dom'
+import React, { useState } from 'react'
+import {Link, useNavigate} from 'react-router-dom'
+import axios from "axios";
 
 function Signup() {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const navigate = useNavigate();
+
   return (
     <div className='min-h-screen bg-gray-500  '>
     <div className="flex justify-center flex-grow">
@@ -13,21 +20,32 @@ function Signup() {
           </div>
           <div>
             <div className="font-semibold">First Name</div>
-            <input className="border border-x-slate-200 rounded-md w-full h-10 placeholder:p-2" type="text" placeholder='John' />
+            <input onChange={e=>{setFirstName(e.target.value)}} className="border border-x-slate-200 rounded-md w-full h-10 p-2 placeholder:p-2" type="text" placeholder='John' />
           </div>
           <div className="mt-4">
             <div className="font-semibold">Last Name</div>
-            <input className="border border-x-slate-200 rounded-md w-full h-10 placeholder:p-2" type="text" placeholder='Doe' />
+            <input onChange={e=>{setLastName(e.target.value)}} className="border border-x-slate-200 rounded-md w-full h-10 p-2 placeholder:p-2" type="text" placeholder='Doe' />
           </div>
           <div className="mt-4">
             <div className="font-semibold">Email</div>
-            <input className="border border-x-slate-200 rounded-md w-full h-10 placeholder:p-2" type="text" placeholder='johndoe@gmail.com' />
+            <input onChange={e=>{setUsername(e.target.value)}} className="border border-x-slate-200 rounded-md w-full h-10 p-2 placeholder:p-2" type="text" placeholder='johndoe@gmail.com' />
           </div>
           <div className="mt-4">
             <div className="font-semibold">Password</div>
-            <input className="border border-x-slate-200 rounded-md w-full h-10 placeholder:p-2" type="text" />
+            <input onChange={e=>{setPassword(e.target.value)}} className="border border-x-slate-200 rounded-md w-full h-10 p-2 placeholder:p-2" type="text" />
           </div>
-          <button className="w-full text-white bg-black rounded-md mt-4 h-10 font-medium">Sign Up</button>
+          <button 
+          onClick={async () => {
+            const response = await axios.post("http://localhost:3000/api/v1/user/signup", {
+              username,
+              firstName,
+              lastName,
+              password
+            });
+            localStorage.setItem("token", response.data.token)
+            navigate("/dashboard")
+          }}
+          className="w-full text-white bg-black rounded-md mt-4 h-10 font-medium">Sign Up</button>
           <div className="my-4">
             <span className="font-normal">Already have an account? <Link className='underline' to="/signin">Login</Link></span>
           </div>
