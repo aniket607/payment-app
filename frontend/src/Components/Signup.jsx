@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import {Link, useNavigate} from 'react-router-dom'
 import axios from "axios";
 
@@ -8,6 +8,22 @@ function Signup() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const navigate = useNavigate();
+ 
+  useEffect(() => {
+    async function verifyLogin() {
+      let token=localStorage.getItem("token")
+      const resp=await axios.get("http://localhost:3000/api/v1/me",{
+      headers:{
+        Authorization:token
+      }
+    })
+    if(resp.data.isLoggedIn){
+      navigate("/dashboard")
+    }
+  }
+    verifyLogin();
+  }, [])
+  
 
   return (
     <div className='min-h-screen bg-gray-500  '>
@@ -42,7 +58,7 @@ function Signup() {
               lastName,
               password
             });
-            localStorage.setItem("token", response.data.token)
+            localStorage.setItem("token",`Bearer ${response.data.token}`);
             navigate("/dashboard")
           }}
           className="w-full text-white bg-black rounded-md mt-4 h-10 font-medium">Sign Up</button>

@@ -5,6 +5,7 @@ import axios from 'axios'
 function Dashboard() {
   const [balance, setBalance] = useState(0)
   const [users,setUsers]=useState([])
+  const [filter,setFilter]=useState("")
 
   useEffect(() => {
      async function fetchbalance (){
@@ -49,7 +50,12 @@ function Dashboard() {
       </div>
       <div className='ml-6 mt-6 text-2xl font-bold'>Users</div>
       <div className='mx-6 mt-4'>
-          <input className='border border-x-slate-200 rounded-md w-full h-10 placeholder:p-2 ' type="text" placeholder='Search Users...'/>
+          <input onChange={async(e)=>{
+            setFilter(e.target.value)
+            const resp=await axios.get(`http://localhost:3000/api/v1/user/bulk?filter=${filter}`)
+            setUsers(resp.data.user);
+            
+          }} className='border border-x-slate-200 rounded-md w-full h-10 px-4 ' type="text" placeholder='Search Users...'/>
       </div>
       <div>
          {users.map((user)=>{
